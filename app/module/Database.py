@@ -30,7 +30,9 @@ class Database:
             self.dbclient.commit()
             cur.execute('''
                         CREATE TABLE IF NOT EXISTS history (
-                        date VARCHAR(20),
+                        id INT,
+                        date VARCHAR(10),
+                        time VARCHAR(10),
                         username VARCHAR(30),
                         action VARCHAR(200));
                         ''')
@@ -188,15 +190,11 @@ class Database:
     
     def add_member(self, username, mail, platit):
         cur = self.dbclient.cursor()
-        cur.execute("""
-            SELECT id FROM membri
-            WHERE name = %s AND mail = %s 
-            """, (username, mail))
+        cur.execute(f"SELECT id FROM membri WHERE mail = '{mail}' ")
         member_exist = cur.fetchone()
-        print(platit, 'zzzzzzzzz')
         if member_exist != None:
             cur = self.dbclient.cursor()
-            cur.execute(f"UPDATE membri SET platit = {platit}, status_membri = 1 WHERE id = {member_exist[0]}")
+            cur.execute(f"UPDATE membri SET name = '{username}', platit = {platit}, status_membri = 1 WHERE id = {member_exist[0]}")
             self.dbclient.commit()
             
         else:
@@ -207,7 +205,14 @@ class Database:
                 """,
                 (username, mail.lower(), platit))
             self.dbclient.commit()
-        return True
+
+        cur.execute("""
+            SELECT id FROM membri
+            WHERE name = %s AND mail = %s 
+            """, (username, mail))
+        membrul_adaugat = cur.fetchone()
+        
+        return True, membrul_adaugat[0]
     
     def remove_member(self, id):
         cur = self.dbclient.cursor()
@@ -226,21 +231,29 @@ class Database:
         return True
     
 
-    def get_history_page(self):
+    def get_history_page(self, type_history):
         cur = self.dbclient.cursor()
-        cur.execute("""
-            SELECT COUNT(date)
-            FROM history
-            """)
-        member_count = cur.fetchone()
-
-        return member_count[0]
+        if type_history == 0 :
+            cur.execute("""
+                SELECT COUNT(id)
+                FROM history
+                """)
+            member_count = cur.fetchone()
+            return member_count[0]
+        else:
+            cur.execute(f"SELECT COUNT(id) FROM history WHERE id ={type_history}")
+            member_count = cur.fetchone()
+            return member_count[0]
     
-    def get_history(self, page):
+    def get_history(self, page, type_history):
         cur = self.dbclient.cursor()
-        cur.execute(f"SELECT date, username, action FROM history ORDER BY date DESC LIMIT 10 OFFSET (10 * ({page} - 1))") 
-        
-        lista_history = cur.fetchall()
+        lista_history = []
+        if type_history == 0:
+            cur.execute(f"SELECT id, date, time, username, action FROM history ORDER BY date DESC, time DESC LIMIT 10 OFFSET (10 * ({page} - 1))") 
+            lista_history = cur.fetchall()
+        else:
+            cur.execute(f"SELECT id, date, time, username, action FROM history WHERE id = {type_history} ORDER BY date DESC, time DESC LIMIT 10 OFFSET (10 * ({page} - 1))") 
+            lista_history = cur.fetchall()
         lista_dict_history=[]
         for action in lista_history:
             dictaction={}
@@ -249,10 +262,14 @@ class Database:
             for info in action:
                 match x:
                     case 0:
-                        dictaction['date']= info
+                        dictaction['id']= info
                     case 1:
-                        dictaction['username']= info
+                        dictaction['date']= info
                     case 2:
+                        dictaction['time']= info
+                    case 3:
+                        dictaction['username']= info
+                    case 4:
                         dictaction['action']= info
                 x+= 1
             lista_dict_history.append(dictaction)
@@ -260,13 +277,32 @@ class Database:
         return lista_dict_history
     
 
-    def add_history(self, date, username, sentance):
+    def add_history(self, member_id, date, time, username, sentance):
         cur = self.dbclient.cursor()
         
         cur.execute("""
-            INSERT INTO history (date, username, action)
-            VALUES (%s, %s, %s);
+            INSERT INTO history (id, date, time, username, action)
+            VALUES (%s, %s, %s, %s, %s);
             """,
-            (date, username, sentance))
+            (member_id, date, time, username, sentance))
         self.dbclient.commit()
         return True
+    
+    def get_membrs_mail_name(self):
+        cur = self.dbclient.cursor()
+        cur.execute(f"SELECT name, mail FROM membri WHERE status_membri = 1 AND platit= false")
+        lista_membri = cur.fetchall()
+        lista_dict_membri=[]
+        for membru in lista_membri:
+            dictaction={}
+            x= 0
+            for info in membru:
+                match x:
+                    case 0:
+                        dictaction['name']= info
+                    case 1:
+                        dictaction['mail']= info
+                x+= 1
+            lista_dict_membri.append(dictaction)
+                
+        return lista_dict_membri

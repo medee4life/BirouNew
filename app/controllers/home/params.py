@@ -13,6 +13,7 @@ class Update_Status(BaseModel):
     username: str | None = None
 
 class History(BaseModel):
+    member_id: int | None
     sentance: str | None = None
 
 class Send_mail(BaseModel):

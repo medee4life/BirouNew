@@ -19,14 +19,15 @@ async def adaugare(
     items: Add_member,
     user: User=Depends(get_current_user_from_cookie)
 ):
-    print('xd')
+    print('xd adaugare' * 100)
     if not user:
         return RedirectResponse('/logout')
     if not items.member_platit: items.member_platit = False
     if not items.member_name and not items.member_mail: return {'status': False}
     print('xd')
-    Db.add_member(items.member_name, items.member_mail, items.member_platit)
-    return {'status': True, 'data': [items.member_name, items.member_mail]}
+    status, new_member_id = Db.add_member(items.member_name, items.member_mail, items.member_platit)
+    if(Db.add_history(new_member_id ,datetime.now().strftime("%Y-%m-%d"), datetime.now().strftime("%H:%M:%S"), user, f'A adaugat membrul {items.member_name}')):
+        return {'status': True, 'data': [items.member_name, items.member_mail]}
 
 
 
@@ -111,18 +112,20 @@ async def send_mail(
 
 @panel_router.get('/history_page_count')
 async def history_page_count(
+    type_history : int,
     user: User=Depends(get_current_user_from_cookie)
 ):
     if not user:
         return RedirectResponse('/logout')
     
-    history_page_count = Db.get_history_page()
+    history_page_count = Db.get_history_page(type_history)
     return {'count': history_page_count}
 
 @panel_router.get('/history_page/')
 async def history_page(
     page : int,
     total : int,
+    type_history : int,
     user : User=Depends(get_current_user_from_cookie)
 ):
     print(page, total)
@@ -130,7 +133,8 @@ async def history_page(
         return RedirectResponse('/logout')
     if page < 1 : page = 1
     if not total: page =1
-    history_page = Db.get_history(page)
+    history_page = Db.get_history(page, type_history)
+    print(history_page)
     return {'history': history_page}
 
 @panel_router.post('/history_add')
@@ -142,6 +146,26 @@ async def history_add(
         return RedirectResponse('/logout')
     xd = datetime.now()
 
-    if(Db.add_history(datetime.now().strftime("%Y-%m-%d"), user, data.sentance)):
+    if(Db.add_history(data.member_id ,datetime.now().strftime("%Y-%m-%d"), datetime.now().strftime("%H:%M:%S"), user, data.sentance)):
         return {'status': True}
     return {'status': False}
+
+@panel_router.get('/sendall')
+async def sendall(
+    user: User=Depends(get_current_user_from_cookie)
+):
+    if not user:
+        return RedirectResponse('/logout')
+    
+    lista_membri = Db.get_membrs_mail_name()
+    print(lista_membri, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+    for membru in lista_membri:
+        print(membru['name'])
+        if Mail.mail_ok({
+            'owner': {
+            'name' : membru['name'],
+            'mail' : membru['mail'],
+            },
+        }): pass
+        else: return {'status': False}
+    return {'status': True}

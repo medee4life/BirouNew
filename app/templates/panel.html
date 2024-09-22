@@ -43,7 +43,7 @@
               		<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             	</div>
 				<div class="modal-body">
-					<form id="form-add" class="needs-validation" novalidate method="POST" action="/panel/adaugare">
+					<form id="form-add" class="needs-validation" novalidate>
 						<div class="form-group">
 							<label for="name">Nume</label>
 							<input type="text" class="form-control" id="name" aria-describedby="Nume" placeholder="Nume" name="username" required>
@@ -53,7 +53,7 @@
 						</div>
 						<div class="form-group mt-4">
 							<label for="Email">E-mail</label>
-							<input type="text" class="form-control" id="Email" placeholder="Email" name="mail" required>
+							<input type="email" class="form-control" id="Email" placeholder="Email" name="mail" required>
 							<div class="invalid-feedback">
 								Introdu E-mailul membrului
 							</div>
@@ -75,7 +75,7 @@
     
 
     <div class="container-lg text-center card mt-5" id="table_membri">
-		<div id="text-tabel" class="mt-3 mb-3 text-center">Tabel Membri</div>
+		<div id="text_tabel" class="mt-3 mb-3 text-center">Tabel Membri</div>
     	<table class="table table-hover">
         	<thead>
           		<tr id="tr_head">
@@ -127,22 +127,25 @@
     </div>
 
 	<div class="container-fluid mt-4">
-		<div class="row justify-content-center">
+		<div id="buttons_chose" class="row justify-content-center">
 			<div class="col-2">
-				<button style="width: 120px !important;" id="button_send_all" type="button" class="btn btn-primary btn-sm">Trimite E-mail <br> tuturor</button>
+				<button style="width: 120px !important; height: 52px !important;" id="button_send_all" type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal_change">Trimite E-mail <br> tuturor</button>
 			</div>
 			<div class="col-2">
-				<button style="width: 120px !important;" id="show_all_members" type="button" class="btn btn-primary btn-sm">Arata <br> toti userii</button>
+				<button style="width: 120px !important; height: 52px !important;" id="show_all_members" type="button" class="btn btn-primary btn-sm">Arata <br> toti userii</button>
 			</div>
 			<div class="col-2">
-				<button style="width: 120px !important;" id="show_history" type="button" class="btn btn-primary btn-sm">Arata <br> istoricul</button>
+				<button style="width: 120px !important; height: 52px !important;" id="show_history" type="button" class="btn btn-primary btn-sm">Arata <br> istoricul</button>
+			</div>
+			<div class="col-2" style="display: none;">
+				<button style="width: 120px !important; height: 52px !important;" id="show_history" type="button" class="btn btn-primary btn-sm">Inapoi</button>
 			</div>
 		</div>
 	</div>
 
     </div>
 	
-    <div class="modal" id="modal_change" tabindex="-1" aria-labelledby="sendMailLabel" aria-hidden="true">
+    <div class="modal fade" id="modal_change" tabindex="-1" aria-labelledby="sendMailLabel" aria-hidden="true">
       <div class="modal-dialog">
           <div class="modal-content">
           <div class="modal-header">
